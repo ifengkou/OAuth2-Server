@@ -2,6 +2,7 @@ package cn.ifengkou.dao.entity;
 
 import lombok.Data;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -10,9 +11,18 @@ import java.util.Date;
  * @date: 2020/8/22
  */
 @Data
-public class BaseEntity implements Serializable{
+@MappedSuperclass
+public abstract class BaseEntity implements Serializable{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Date updateTime;
-    private Date createTime;
+
+    @Column(columnDefinition = "int default 1")
     private int status;
+
+    @Column(columnDefinition = "DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP")
+    private Date createTime;
+
+    @Column(columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP ON update CURRENT_TIMESTAMP")
+    private Date updateTime;
 }
