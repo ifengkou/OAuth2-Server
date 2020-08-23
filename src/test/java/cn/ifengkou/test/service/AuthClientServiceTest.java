@@ -1,7 +1,7 @@
-package cn.ifengkou.test;
+package cn.ifengkou.test.service;
 
-import cn.ifengkou.dao.entity.AuthClientEntity;
-import cn.ifengkou.dao.repository.AuthClientRepository;
+import cn.ifengkou.model.AuthClient;
+import cn.ifengkou.service.AuthClientService;
 import com.sun.tools.javac.util.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,14 +17,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource(locations = {"classpath:application.properties"})
 @SpringBootTest
-public class AuthClientRepositoryTest {
+public class AuthClientServiceTest {
     @Autowired
-    protected AuthClientRepository authClientRepository;
+    protected AuthClientService authClientService;
 
     @Test
     public void testFindByClientId(){
-        AuthClientEntity entity = authClientRepository.findByClientId("SampleClientId");
+        AuthClient entity = authClientService.findByClientId("SampleClientId");
         Assert.check(entity!=null);
     }
-
 }

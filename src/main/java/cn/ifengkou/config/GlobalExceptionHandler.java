@@ -1,6 +1,6 @@
 package cn.ifengkou.config;
 
-import cn.ifengkou.model.ParamsException;
+import cn.ifengkou.model.exception.ParamsException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;

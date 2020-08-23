@@ -15,7 +15,7 @@ import javax.persistence.UniqueConstraint;
 @Data
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
-public class UserEntity extends BaseEntity {
+public class UserAccountEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private String username;
     @Column(nullable = false)
@@ -25,4 +25,7 @@ public class UserEntity extends BaseEntity {
     private String mobile;
     @Column(columnDefinition = "VARCHAR(150)")
     private String email;
+
+    @Column(columnDefinition = "int default 0")
+    private Integer failureCount;
 }
