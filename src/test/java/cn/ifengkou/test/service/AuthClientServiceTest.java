@@ -3,6 +3,7 @@ package cn.ifengkou.test.service;
 import cn.ifengkou.model.AuthClient;
 import cn.ifengkou.service.AuthClientService;
 import com.sun.tools.javac.util.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ public class AuthClientServiceTest {
     protected AuthClientService authClientService;
 
     @Test
+    @Ignore
     public void testFindByClientId(){
         AuthClient entity = authClientService.findByClientId("SampleClientId");
         Assert.check(entity!=null);
