@@ -1,5 +1,6 @@
 package cn.ifengkou.controller;
 
+import cn.ifengkou.config.SysProperties;
 import cn.ifengkou.utils.BigIntegerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +26,8 @@ public class JwkSetEndpoint {
     @Autowired
     KeyPair keyPair;
 
-    @Value("${oauth2.issuer-uri:http://localhost:8888}")
-    String issuerUri;
+    @Autowired
+    SysProperties sysProperties;
 
     @GetMapping("/.well-known/jwks.json")
     @ResponseBody
@@ -34,8 +35,8 @@ public class JwkSetEndpoint {
         Map<String, List<Map<String, Object>>> jwksData = new HashMap<>(16);
         RSAPublicKey publicKey = (RSAPublicKey) this.keyPair.getPublic();
 
-        String n = new String(Base64Utils.encodeUrlSafe(BigIntegerUtils.toBytesUnsigned(publicKey.getModulus())));
-        String e = new String(Base64Utils.encodeUrlSafe(BigIntegerUtils.toBytesUnsigned(publicKey.getPublicExponent())));
+        String n = new String(Base64Utils.encode(BigIntegerUtils.toBytesUnsigned(publicKey.getModulus())));
+        String e = new String(Base64Utils.encode(BigIntegerUtils.toBytesUnsigned(publicKey.getPublicExponent())));
         Map<String, Object> jwk = new HashMap<>(16);
         jwk.put("kty", publicKey.getAlgorithm());
         jwk.put("n", n);
@@ -48,12 +49,12 @@ public class JwkSetEndpoint {
     @ResponseBody
     public Map<String, String> metadataRequest() {
         Map<String, String> metaData = new HashMap<>(16);
-        metaData.put("issuer", issuerUri);
-        metaData.put("authorization_endpoint", issuerUri + "/oauth/authorize");
-        metaData.put("token_endpoint", issuerUri + "/oauth/token");
-        metaData.put("check_token", issuerUri + "/oauth/check_token");
-        metaData.put("jwks_uri", issuerUri + "/.well-known/jwks.json");
-        metaData.put("userinfo_endpoint", issuerUri + "/user/me");
+        metaData.put("issuer", sysProperties.getIssuerUri());
+        metaData.put("authorization_endpoint", sysProperties.getIssuerUri() + "/oauth/authorize");
+        metaData.put("token_endpoint", sysProperties.getIssuerUri() + "/oauth/token");
+        metaData.put("check_token", sysProperties.getIssuerUri() + "/oauth/check_token");
+        metaData.put("jwks_uri", sysProperties.getIssuerUri() + "/.well-known/jwks.json");
+        metaData.put("userinfo_endpoint", sysProperties.getIssuerUri() + "/user/me");
         return metaData;
     }
 }

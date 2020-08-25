@@ -21,4 +21,5 @@ public class UserAccount implements Serializable{
     private String password;
     private String email;
     private String mobile;
+    private Integer status;
 }

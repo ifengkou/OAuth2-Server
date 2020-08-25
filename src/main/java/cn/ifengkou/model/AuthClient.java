@@ -25,5 +25,7 @@ public class AuthClient implements Serializable{
     private String logoutUrl;
     private String logo;
     private String background;
+    private int accessTokenValidity = 60 * 60 * 2;
+    private int refreshTokenValidity = 60 * 60 * 24;
     private int status;
 }
