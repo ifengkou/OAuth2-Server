@@ -1,9 +1,8 @@
-package com.revengemission.sso.oauth2.server.controller;
+package cn.ifengkou.controller;
 
+import cn.ifengkou.model.UserAccount;
+import cn.ifengkou.service.UserAccountService;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.revengemission.sso.oauth2.server.domain.EntityNotFoundException;
-import com.revengemission.sso.oauth2.server.domain.UserAccount;
-import com.revengemission.sso.oauth2.server.service.UserAccountService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.apache.commons.lang3.StringUtils;
@@ -14,14 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.security.KeyPair;
 import java.security.Principal;
 import java.time.LocalDate;
@@ -74,14 +68,14 @@ public class ProfileController {
                     String username = claims.getSubject();
                     UserAccount userAccount = userAccountService.findByUsername(username);
                     result.put("username", username);
-                    if (StringUtils.isNotEmpty(userAccount.getGender())) {
+                    /*if (StringUtils.isNotEmpty(userAccount.getGender())) {
                         result.put("gender", userAccount.getGender());
                     }
                     if (StringUtils.isNotEmpty(userAccount.getNickName())) {
                         result.put("nickName", userAccount.getNickName());
-                    }
+                    }*/
                     result.put("accountOpenCode", "" + userAccount.getId());
-                    result.put("authorities", claims.get("roles"));
+                    //result.put("authorities", claims.get("roles"));
                     result.put("status", 1);
                 } catch (Exception e) {
                     if (log.isDebugEnabled()) {
@@ -137,14 +131,14 @@ public class ProfileController {
 
         try {
             UserAccount userAccount = userAccountService.findByUsername(principal.getName());
-            userAccount.setNickName(StringEscapeUtils.escapeHtml4(nickName));
-            userAccount.setAvatarUrl(StringEscapeUtils.escapeHtml4(avatarUrl));
+            /*userAccount.setNickName(StringEscapeUtils.escapeHtml4(nickName));
+            userAccount.setAvatarUrl(StringEscapeUtils.escapeHtml4(avatarUrl));*/
             userAccount.setEmail(StringEscapeUtils.escapeHtml4(email));
             userAccount.setMobile(StringEscapeUtils.escapeHtml4(mobile));
-            userAccount.setProvince(StringEscapeUtils.escapeHtml4(province));
+            /*userAccount.setProvince(StringEscapeUtils.escapeHtml4(province));
             userAccount.setCity(StringEscapeUtils.escapeHtml4(city));
             userAccount.setAddress(StringEscapeUtils.escapeHtml4(address));
-            userAccount.setBirthday(birthday);
+            userAccount.setBirthday(birthday);*/
             userAccount = userAccountService.updateById(userAccount);
             model.addAttribute("userAccount", userAccount);
             model.addAttribute("updated", true);

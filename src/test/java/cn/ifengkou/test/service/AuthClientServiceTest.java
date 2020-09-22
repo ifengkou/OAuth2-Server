@@ -1,3 +1,4 @@
+/*
 package cn.ifengkou.test.service;
 
 import cn.ifengkou.model.AuthClient;
@@ -11,10 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+*/
 /**
  * @author shenlongguang<https://github.com/ifengkou>
  * @date: 2020/8/23
- */
+ *//*
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @TestPropertySource(locations = {"classpath:application.properties"})
 @SpringBootTest
@@ -29,3 +32,4 @@ public class AuthClientServiceTest {
         Assert.check(entity!=null);
     }
 }
+*/

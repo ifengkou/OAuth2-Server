@@ -16,4 +16,15 @@ public class SysProperties {
     @Value("${oauth2.issuer-uri:http://localhost:8888}")
     String issuerUri;
 
+    public static String SESSION_USER_ATTRIBUTE = "SESSION_USER_ATTRIBUTE";
+
+    /**
+     * 登录页面的回调地址在session中存储的变量名
+     */
+    public static final String SESSION_LOGIN_REDIRECT_URL = "LOGIN_REDIRECT_URL";
+
+    /**
+     * 授权页面的回调地址在session中存储的变量名
+     */
+    public static final String SESSION_AUTH_REDIRECT_URL = "SESSION_AUTH_REDIRECT_URL";
 }

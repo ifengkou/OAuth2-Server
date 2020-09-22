@@ -1,19 +1,27 @@
 package cn.ifengkou.config;
 
+import cn.ifengkou.model.ResponseResult;
+import cn.ifengkou.model.exception.AlreadyExistsException;
+import cn.ifengkou.model.exception.BusinessException;
 import cn.ifengkou.model.exception.ParamsException;
+import cn.ifengkou.utils.HttpUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Date;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,16 +37,40 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = ParamsException.class)
     @ResponseBody
     public ResponseEntity<Object> handleParamsException(HttpServletRequest request, ParamsException ex) {
-        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
-        HttpHeaders headers = new HttpHeaders();
-        Map<String, Object> responseResult = new HashMap<>(16);
-        responseResult.put("code", httpStatus.value());
-        responseResult.put("error", httpStatus.getReasonPhrase());
-        responseResult.put("timestamp", new Date());
-        responseResult.put("msg", ex.getDetails());
-        responseResult.put("path", request.getRequestURL());
-        return new ResponseEntity<>(responseResult, headers, httpStatus);
+        return HttpUtils.buildJsonResponse(request, HttpStatus.BAD_REQUEST, "参数校验异常", ex.getDetails());
     }
+
+    @ExceptionHandler(value = AlreadyExistsException.class)
+    @ResponseBody
+    public ResponseEntity<Object> handleAlreadyExistsException(HttpServletRequest request, AlreadyExistsException ex) {
+        return HttpUtils.buildJsonResponse(request, HttpStatus.NOT_IMPLEMENTED, ex.getMessage() == null ? "对象已存在" : ex.getMessage());
+    }
+
+    @ExceptionHandler(value = EntityNotFoundException.class)
+    @ResponseBody
+    public ResponseEntity<Object> handleEntityNotFoundException(HttpServletRequest request, EntityNotFoundException ex) {
+        return HttpUtils.buildJsonResponse(request, HttpStatus.NOT_IMPLEMENTED, ex.getMessage() == null ? "对象不存在" : ex.getMessage());
+    }
+
+    @ExceptionHandler(value = BusinessException.class)
+    @ResponseBody
+    public ResponseEntity<Object> handleBusinessException(HttpServletRequest request, BusinessException ex) {
+        return HttpUtils.buildJsonResponse(request, HttpStatus.NOT_IMPLEMENTED, ex.getMessage() == null ? "业务处理异常" : ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ResponseEntity<Object> handleValidationExceptions(HttpServletRequest request, MethodArgumentNotValidException ex) throws IOException {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        log.error("spring参数校验异常", ex);
+        return HttpUtils.buildJsonResponse(request, HttpStatus.BAD_REQUEST, "参数校验异常", errors);
+    }
+
 
 
     @ExceptionHandler(Exception.class)
@@ -46,17 +78,8 @@ public class GlobalExceptionHandler {
     ResponseEntity<Object> handleException(Exception ex, HttpServletRequest request) {
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         logRequest(ex, httpStatus, request);
-        HttpHeaders headers = new HttpHeaders();
-        Map<String, Object> responseResult = new HashMap<>(16);
-        responseResult.put("code", httpStatus.value());
-        responseResult.put("error", httpStatus.getReasonPhrase());
-        responseResult.put("timestamp", new Date());
-        responseResult.put("msg", ex.getMessage());
-        responseResult.put("path", request.getRequestURL());
-        return new ResponseEntity<>(responseResult, headers, httpStatus);
+        return HttpUtils.buildJsonResponse(request, httpStatus, StringUtils.isBlank(ex.getMessage()) ? httpStatus.getReasonPhrase() : ex.getMessage());
     }
-
-
 
     /**
      * 记录下请求内容

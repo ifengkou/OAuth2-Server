@@ -16,6 +16,7 @@ import java.io.Serializable;
 @Data
 public class UserAccount implements Serializable{
     private Long id;
+    private String openId;
     private String username;
     @JsonIgnore
     private String password;

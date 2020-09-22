@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @date: 2020/8/23
  */
 @SpringBootApplication
+//@EnableLoadTimeWeaving
+//@EnableAspectJAutoProxy
 public class AppMain {
     public static void main(String[] args) {
         SpringApplication.run(AppMain.class, args);

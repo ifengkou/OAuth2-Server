@@ -28,4 +28,5 @@ public class AuthClient implements Serializable{
     private int accessTokenValidity = 60 * 60 * 2;
     private int refreshTokenValidity = 60 * 60 * 24;
     private int status;
+    private boolean authRequired;
 }

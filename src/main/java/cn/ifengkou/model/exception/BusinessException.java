@@ -5,13 +5,13 @@ package cn.ifengkou.model.exception;
  * @author shenlongguang<https://github.com/ifengkou>
  * @date: 2020/8/23
  */
-public class BussinessException extends RuntimeException {
+public class BusinessException extends RuntimeException {
 
-    public BussinessException() {
+    public BusinessException() {
         super();
     }
 
-    public BussinessException(String message) {
+    public BusinessException(String message) {
         super(message);
     }
 }

@@ -54,7 +54,7 @@ public class PasswordTokenGranter implements TokenGranter {
 
         Date now = new Date();
         Date tokenExpiration = Date.from(LocalDateTime.now().plusSeconds(client.getAccessTokenValidity()).atZone(ZoneId.systemDefault()).toInstant());
-        Date refreshTokenExpiration = Date.from(LocalDateTime.now().plusSeconds(client.getAccessTokenValidity()).atZone(ZoneId.systemDefault()).toInstant());
+        Date refreshTokenExpiration = Date.from(LocalDateTime.now().plusSeconds(client.getRefreshTokenValidity()).atZone(ZoneId.systemDefault()).toInstant());
 
         String tokenId = UUID.randomUUID().toString();
         String accessToken = Jwts.builder()

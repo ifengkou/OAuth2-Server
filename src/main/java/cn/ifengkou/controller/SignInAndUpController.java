@@ -1,25 +1,33 @@
-package com.revengemission.sso.oauth2.server.controller;
+package cn.ifengkou.controller;
 
-import com.revengemission.sso.oauth2.server.config.CachesEnum;
-import com.revengemission.sso.oauth2.server.domain.*;
-import com.revengemission.sso.oauth2.server.service.CaptchaService;
-import com.revengemission.sso.oauth2.server.service.OauthClientService;
-import com.revengemission.sso.oauth2.server.service.RoleService;
-import com.revengemission.sso.oauth2.server.service.UserAccountService;
-import com.revengemission.sso.oauth2.server.utils.CheckPasswordStrength;
+
+import cn.ifengkou.config.GlobalConstant;
+import cn.ifengkou.model.UserAccount;
+import cn.ifengkou.model.exception.BusinessException;
+import cn.ifengkou.service.AuthClientService;
+import cn.ifengkou.service.UserAccountService;
+import cn.ifengkou.utils.HttpUtils;
+import org.apache.commons.codec.digest.Sha2Crypt;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.checkerframework.common.value.qual.MinLen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -30,24 +38,62 @@ public class SignInAndUpController {
     UserAccountService userAccountService;
 
     @Autowired
-    OauthClientService oauthClientService;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
-
-    @Autowired
-    CaptchaService captchaService;
-
-    @Autowired
-    RoleService roleService;
+    AuthClientService authClientService;
 
     @GetMapping("/signIn")
-    public String signIn(@RequestParam(value = "error", required = false) String error,
+    public String signIn(HttpServletRequest request,
+                         @RequestParam(value = "error", required = false) String error,
                          Model model) {
         if (StringUtils.isNotEmpty(error)) {
             model.addAttribute("error", error);
         }
+
+        String redirectUrl = request.getParameter("redirect_uri");
+        if (StringUtils.isNoneBlank(redirectUrl)) {
+            HttpSession session = request.getSession();
+            //将回调地址添加到session中
+            session.setAttribute(GlobalConstant.SESSION_LOGIN_REDIRECT_URL, redirectUrl);
+        }
+
         return "signIn";
+    }
+
+    @PostMapping("/check")
+    @ResponseBody
+    public ResponseEntity<Object> check(HttpServletRequest request) {
+
+
+        //用户名
+        String username = request.getParameter("username");
+        //密码
+        String password = request.getParameter("password");
+
+        if (StringUtils.isNoneBlank(username) && StringUtils.isNoneBlank(password)) {
+            //1. 登录验证
+            UserAccount user = userAccountService.findByUsername(username);
+            //登录验证通过
+            if (user.getPassword().equals(password)) {
+                if (user.getStatus() != 0) {
+                    throw new BusinessException("账户状态异常，请联系管理员");
+                }
+
+                //2. session中添加用户信息
+                HttpSession session = request.getSession();
+                session.setAttribute(GlobalConstant.SESSION_USER, user);
+
+                //3. 返回给页面的数据
+                //登录成功之后的回调地址
+                String redirectUrl = (String) session.getAttribute(GlobalConstant.SESSION_LOGIN_REDIRECT_URL);
+                session.removeAttribute(GlobalConstant.SESSION_LOGIN_REDIRECT_URL);
+
+                Map<String, Object> data = new HashMap<>(1);
+                if (StringUtils.isNoneBlank(redirectUrl)) {
+                    data.put("redirect_uri", redirectUrl);
+                }
+                return HttpUtils.buildJsonResponse("OK",data);
+            }
+        }
+        return HttpUtils.buildJsonResponse(request, HttpStatus.FORBIDDEN,"登录信息错误");
     }
 
     @GetMapping("/signUp")
@@ -61,69 +107,15 @@ public class SignInAndUpController {
 
     @ResponseBody
     @PostMapping("/oauth/signUp")
-    public ResponseResult<Object> handleOauthSignUp(@RequestParam(value = GlobalConstant.VERIFICATION_CODE) String verificationCode,
-                                                    @RequestParam(value = "graphId") String graphId,
-                                                    @RequestParam(value = "username") String username,
-                                                    @RequestParam(value = "password") String password) {
-
-        ResponseResult<Object> responseResult = new ResponseResult<>();
-        if (StringUtils.isAnyBlank(graphId, username, password)) {
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("请检查输入");
-            return responseResult;
-        }
-
+    public ResponseEntity<Object> handleOauthSignUp(@RequestParam(value = "username") @Validated @MinLen(6) String username,
+                                                 @RequestParam(value = "password") @Validated @MinLen(6) String password) {
         username = StringUtils.trimToEmpty(username).toLowerCase();
         password = StringUtils.trimToEmpty(password);
-
-        if (username.length() < 6) {
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("用户名至少6位");
-            return responseResult;
-        }
-
-        if (password.length() < 6) {
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("密码至少6位");
-            return responseResult;
-        }
-
-        if (CheckPasswordStrength.check(password) < 4) {
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("密码应包含字母、数字、符号");
-            return responseResult;
-        }
-
-        String captcha = captchaService.getCaptcha(CachesEnum.GraphCaptchaCache, graphId);
-        if (!StringUtils.equalsIgnoreCase(verificationCode, captcha)) {
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("验证码错误");
-            return responseResult;
-        }
-
         UserAccount userAccount = new UserAccount();
-        Role userRole = roleService.findByRoleName(RoleEnum.ROLE_USER.name());
-        userAccount.getRoles().add(userRole);
         userAccount.setUsername(StringEscapeUtils.escapeHtml4(username));
-        userAccount.setPassword(passwordEncoder.encode(password));
-        userAccount.setAccountOpenCode(UUID.randomUUID().toString());
-        try {
-            userAccountService.create(userAccount);
-            //移除验证码
-            captchaService.removeCaptcha(CachesEnum.GraphCaptchaCache, graphId);
-        } catch (AlreadyExistsException e) {
-            if (log.isErrorEnabled()) {
-                log.error("create user exception", e);
-            }
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("用户已经存在");
-        } catch (Exception e) {
-            if (log.isErrorEnabled()) {
-                log.error("create user exception", e);
-            }
-            responseResult.setStatus(GlobalConstant.ERROR);
-            responseResult.setMessage("错误，请重试");
-        }
-        return responseResult;
+        userAccount.setPassword(Sha2Crypt.sha256Crypt(password.getBytes(), GlobalConstant.PWD_SALT));
+        userAccount.setOpenId(UUID.randomUUID().toString());
+        userAccountService.create(userAccount);
+        return HttpUtils.buildJsonResponse("OK",null);
     }
 }

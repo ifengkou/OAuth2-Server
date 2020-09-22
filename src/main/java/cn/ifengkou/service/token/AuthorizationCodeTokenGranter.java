@@ -5,7 +5,6 @@ import cn.ifengkou.config.SysProperties;
 import cn.ifengkou.model.AuthClient;
 import cn.ifengkou.model.UserAccount;
 import cn.ifengkou.model.exception.OAuth2Exception;
-import cn.ifengkou.service.UserAccountService;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +58,7 @@ public class AuthorizationCodeTokenGranter implements TokenGranter {
         if (authorizationCode == null) {
             throw new OAuth2Exception("An authorization code must be supplied.");
         }
-        Cache.ValueWrapper storedCode = cacheManager.getCache(CachesEnum.Oauth2AuthorizationCodeCache.name()).get(authorizationCode);
+        Cache.ValueWrapper storedCode = cacheManager.getCache(CachesEnum.OAuth2AuthorizationCodeCache.name()).get(authorizationCode);
         if (storedCode != null) {
 
             UserAccount userInfo = (UserAccount) (storedCode.get());
@@ -93,6 +92,7 @@ public class AuthorizationCodeTokenGranter implements TokenGranter {
                 .setIssuer(sysProperties.getIssuerUri())
                 .setSubject(userInfo.getUsername())
                 .setAudience(clientId)
+                // TODO 根据具体情况附带 权限/角色
                 //.claim("roles", userInfo.getAuthorities().stream().map(e -> e.getAuthority()).collect(Collectors.toList()))
                 .setExpiration(refreshTokenExpiration)
                 .setNotBefore(now)
@@ -101,7 +101,7 @@ public class AuthorizationCodeTokenGranter implements TokenGranter {
                 .signWith(keyPair.getPrivate())
                 .compact();
 
-            cacheManager.getCache(CachesEnum.Oauth2AuthorizationCodeCache.name()).evictIfPresent(authorizationCode);
+            cacheManager.getCache(CachesEnum.OAuth2AuthorizationCodeCache.name()).evictIfPresent(authorizationCode);
 
             result.put("access_token", accessToken);
             result.put("token_type", "bearer");
