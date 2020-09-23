@@ -1,5 +1,6 @@
 package cn.ifengkou.config.interceptor;
 
+import cn.ifengkou.config.GlobalConstant;
 import cn.ifengkou.config.SysProperties;
 import cn.ifengkou.model.UserAccount;
 import cn.ifengkou.utils.HttpUtils;
@@ -22,14 +23,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         HttpSession session = request.getSession();
 
         //获取session中存储的token
-        UserAccount user = (UserAccount) session.getAttribute(SysProperties.SESSION_USER_ATTRIBUTE);
+        UserAccount user = (UserAccount) session.getAttribute(GlobalConstant.SESSION_USER_ATTRIBUTE);
 
         if(user != null){
             return true;
         }else{
             //如果token不存在，则跳转到登录页面
-            response.sendRedirect(request.getContextPath() + "/login?referrer=" + HttpUtils.getRequestUrl(request));
-
+            String redirectUrl = HttpUtils.getRequestUrl(request);
+            response.sendRedirect(request.getContextPath() + "/signIn?redirect_uri=" + redirectUrl);
             return false;
         }
     }

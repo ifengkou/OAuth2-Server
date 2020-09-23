@@ -1,7 +1,7 @@
 package cn.ifengkou.controller;
 
 import cn.ifengkou.config.CachesEnum;
-import cn.ifengkou.config.SysProperties;
+import cn.ifengkou.config.GlobalConstant;
 import cn.ifengkou.dao.entity.AuthScopeEntity;
 import cn.ifengkou.model.AuthClient;
 import cn.ifengkou.model.UserAccount;
@@ -49,9 +49,6 @@ public class OAuth2Controller {
     TokenFactory tokenFactory;
 
     @Autowired
-    SysProperties sysProperties;
-
-    @Autowired
     KeyPair keyPair;
 
     @GetMapping("/authorize")
@@ -75,16 +72,6 @@ public class OAuth2Controller {
         }
 
         if (client.isAuthRequired()) {
-            // uuid 即是授权码
-            String uuid = UUID.randomUUID().toString().replace("-", "");
-            UserAccount account = (UserAccount) session.getAttribute(SysProperties.SESSION_USER_ATTRIBUTE);
-            cacheManager.getCache(CachesEnum.OAuth2AuthorizationCodeCache.name()).put(uuid, account);
-            if (client.getCallbackUrl().indexOf("?") > 0) {
-                return "redirect:" + client.getCallbackUrl() + "&code=" + uuid + "&state=" + state;
-            } else {
-                return "redirect:" + client.getCallbackUrl() + "?code=" + uuid + "&state=" + state;
-            }
-        } else {
             model.put("client_id", client_id);
             model.put("client_name", client.getClientName());
             model.put("from", referer);
@@ -102,6 +89,16 @@ public class OAuth2Controller {
             model.put("scopeMap", scopeMap);
 
             return "accessConfirmation";
+        } else {
+            // uuid 即是授权码
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+            UserAccount account = (UserAccount) session.getAttribute(GlobalConstant.SESSION_USER_ATTRIBUTE);
+            cacheManager.getCache(CachesEnum.OAuth2AuthorizationCodeCache.name()).put(uuid, account);
+            if (client.getCallbackUrl().indexOf("?") > 0) {
+                return "redirect:" + client.getCallbackUrl() + "&code=" + uuid + "&state=" + state;
+            } else {
+                return "redirect:" + client.getCallbackUrl() + "?code=" + uuid + "&state=" + state;
+            }
         }
     }
 
@@ -123,7 +120,7 @@ public class OAuth2Controller {
         if (userOauthApproval) {
             // uuid 即是授权码
             String uuid = UUID.randomUUID().toString().replace("-", "");
-            UserAccount account = (UserAccount) session.getAttribute(SysProperties.SESSION_USER_ATTRIBUTE);
+            UserAccount account = (UserAccount) session.getAttribute(GlobalConstant.SESSION_USER_ATTRIBUTE);
             cacheManager.getCache(CachesEnum.OAuth2AuthorizationCodeCache.name()).put(uuid, account);
             if (client.getCallbackUrl().indexOf("?") > 0) {
                 return "redirect:" + client.getCallbackUrl() + "&code=" + uuid + "&state=" + state;

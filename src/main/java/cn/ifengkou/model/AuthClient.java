@@ -25,7 +25,9 @@ public class AuthClient implements Serializable{
     private String logoutUrl;
     private String logo;
     private String background;
+    @Builder.Default
     private int accessTokenValidity = 60 * 60 * 2;
+    @Builder.Default
     private int refreshTokenValidity = 60 * 60 * 24;
     private int status;
     private boolean authRequired;

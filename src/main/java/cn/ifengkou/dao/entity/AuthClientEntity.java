@@ -1,6 +1,7 @@
 package cn.ifengkou.dao.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,6 +16,7 @@ import java.io.Serializable;
  * @date: 2020/8/22
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"clientId"}))
 public class AuthClientEntity extends BaseEntity{

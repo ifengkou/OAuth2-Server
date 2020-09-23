@@ -1,6 +1,7 @@
 package cn.ifengkou.dao.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +15,7 @@ import javax.persistence.UniqueConstraint;
  */
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = false)
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"username"}))
 public class UserAccountEntity extends BaseEntity {
     @Column(nullable = false, columnDefinition = "VARCHAR(50)")

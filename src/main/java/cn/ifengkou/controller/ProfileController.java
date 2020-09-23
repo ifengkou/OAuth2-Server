@@ -2,6 +2,7 @@ package cn.ifengkou.controller;
 
 import cn.ifengkou.model.UserAccount;
 import cn.ifengkou.service.UserAccountService;
+import cn.ifengkou.utils.HttpUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -11,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,10 +43,11 @@ public class ProfileController {
 
     @ResponseBody
     @RequestMapping("/user/me")
-    public Map<String, Object> info(@RequestParam(value = "access_token", required = false) String paramToken,
-                                    @RequestHeader(value = "Authorization", required = false) String headerToken,
-                                    @CookieValue(value = "access_token", required = false) String cookieToken) {
+    public ResponseEntity<Object> info(@RequestParam(value = "access_token", required = false) String paramToken,
+                                       @RequestHeader(value = "Authorization", required = false) String headerToken,
+                                       @CookieValue(value = "access_token", required = false) String cookieToken) {
         Map<String, Object> result = new HashMap<>(16);
+        String errMsg = "未检测到token";
         try {
             String token = null;
             if (StringUtils.isNoneBlank(headerToken)) {
@@ -68,37 +72,28 @@ public class ProfileController {
                     String username = claims.getSubject();
                     UserAccount userAccount = userAccountService.findByUsername(username);
                     result.put("username", username);
-                    /*if (StringUtils.isNotEmpty(userAccount.getGender())) {
-                        result.put("gender", userAccount.getGender());
+                    result.put("email", userAccount.getEmail());
+                    result.put("openId", userAccount.getOpenId());
+                    if(StringUtils.isNotBlank(userAccount.getMobile())){
+                        result.put("mobile", userAccount.getMobile());
                     }
-                    if (StringUtils.isNotEmpty(userAccount.getNickName())) {
-                        result.put("nickName", userAccount.getNickName());
-                    }*/
-                    result.put("accountOpenCode", "" + userAccount.getId());
-                    //result.put("authorities", claims.get("roles"));
-                    result.put("status", 1);
+                    //result.put("unionId", "" + userAccount.getId());
+                    return HttpUtils.buildJsonResponse(result);
                 } catch (Exception e) {
                     if (log.isDebugEnabled()) {
                         log.debug("exception", e);
                     }
-                    result.put("status", 0);
-                    result.put("message", e.getMessage());
+                    return HttpUtils.buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage(),null);
                 }
-            } else {
-                result.put("status", 0);
-                result.put("message", "未检测到access_token");
             }
-
-
         } catch (Exception e) {
             if (log.isInfoEnabled()) {
                 log.info("/user/me exception", e);
             }
-            result.put("status", 0);
-            result.put("message", "access_token无效");
+            errMsg = "access_token无效";
         }
 
-        return result;
+        return HttpUtils.buildJsonResponse(HttpStatus.BAD_REQUEST,errMsg);
     }
 
     @GetMapping(value = {"", "/", "/user/profile"})

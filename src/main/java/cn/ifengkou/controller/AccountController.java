@@ -1,5 +1,6 @@
 package cn.ifengkou.controller;
 
+import cn.ifengkou.config.GlobalConstant;
 import cn.ifengkou.config.SysProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
@@ -23,7 +24,7 @@ public class AccountController {
         if(StringUtils.isNoneBlank(redirectUrl)){
             HttpSession session = request.getSession();
             //将回调地址添加到session中
-            session.setAttribute(SysProperties.SESSION_LOGIN_REDIRECT_URL,redirectUrl);
+            session.setAttribute(GlobalConstant.SESSION_LOGIN_REDIRECT_URL,redirectUrl);
         }
 
         return new ModelAndView("login");

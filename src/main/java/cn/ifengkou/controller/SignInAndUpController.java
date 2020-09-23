@@ -25,7 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -58,9 +60,8 @@ public class SignInAndUpController {
         return "signIn";
     }
 
-    @PostMapping("/check")
-    @ResponseBody
-    public ResponseEntity<Object> check(HttpServletRequest request) {
+    @PostMapping("/security_check")
+    public void check(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
 
         //用户名
@@ -79,7 +80,7 @@ public class SignInAndUpController {
 
                 //2. session中添加用户信息
                 HttpSession session = request.getSession();
-                session.setAttribute(GlobalConstant.SESSION_USER, user);
+                session.setAttribute(GlobalConstant.SESSION_USER_ATTRIBUTE, user);
 
                 //3. 返回给页面的数据
                 //登录成功之后的回调地址
@@ -89,11 +90,14 @@ public class SignInAndUpController {
                 Map<String, Object> data = new HashMap<>(1);
                 if (StringUtils.isNoneBlank(redirectUrl)) {
                     data.put("redirect_uri", redirectUrl);
+                    response.sendRedirect(redirectUrl);
                 }
-                return HttpUtils.buildJsonResponse("OK",data);
+                response.sendRedirect(request.getContextPath());
+                //return HttpUtils.buildJsonResponse("OK",data);
             }
         }
-        return HttpUtils.buildJsonResponse(request, HttpStatus.FORBIDDEN,"登录信息错误");
+        response.sendRedirect(request.getContextPath() + "/signIn");
+        //return HttpUtils.buildJsonResponse(request, HttpStatus.FORBIDDEN,"登录信息错误");
     }
 
     @GetMapping("/signUp")

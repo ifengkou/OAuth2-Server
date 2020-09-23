@@ -22,7 +22,8 @@ public class HttpUtils {
         //请求参数
         String queryString = request.getQueryString();
         if(!StringUtils.isEmpty(queryString)){
-            currentUrl = currentUrl + "?" + StringEscapeUtils.escapeHtml4(queryString);
+            //currentUrl = currentUrl + "?" + StringEscapeUtils.escapeHtml4(queryString);
+            currentUrl += ("?" +queryString);
         }
 
         String result = "";
@@ -35,9 +36,21 @@ public class HttpUtils {
         return result;
     }
 
+    public static ResponseEntity<Object> buildJsonResponse(Object data) {
+        return buildJsonResponse(null, HttpStatus.OK, "OK", data);
+    }
+
     public static ResponseEntity<Object> buildJsonResponse(String msg, Object data) {
         return buildJsonResponse(null, HttpStatus.OK, msg, data);
     }
+
+    public static ResponseEntity<Object> buildJsonResponse(HttpStatus httpStatus, Object data) {
+        return buildJsonResponse(null, httpStatus, httpStatus.getReasonPhrase(), data);
+    }
+    public static ResponseEntity<Object> buildJsonResponse(HttpStatus httpStatus,String msg, Object data) {
+        return buildJsonResponse(null, httpStatus, msg, data);
+    }
+
 
     public static ResponseEntity<Object> buildJsonResponse(HttpServletRequest request,String msg,Object data) {
         return buildJsonResponse(request, HttpStatus.OK, msg, data);
